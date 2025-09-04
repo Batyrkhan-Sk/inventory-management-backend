@@ -9,10 +9,143 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  password  String
-  role      String   @default("user") 
+  id           String   @id @default(uuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String?
+  googleId     String?  @unique
+  linkedinId   String?  @unique
+  role         Role     @default(USER)
+  blocked      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  inventoriesOwned Inventory[]       @relation("InventoryOwner")
+  inventoryAccess  InventoryAccess[]
+  likes            Like[]
+  discussionPosts  DiscussionPost[]
+  createdItems     Item[]            @relation("UserItemsCreated")
+}
+
+model Inventory {
+  id        String   @id @default(uuid())
+  title     String   @default("Untitled")
+  description String?
+  category  String?
+  imageUrl  String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   Int      @default(1)
+
+  customIdFormat Json?
+
+  owner   User   @relation("InventoryOwner", fields: [ownerId], references: [id])
+  ownerId String
+
+  fields     CustomField[]
+  items      Item[]
+  tags       Tag[]             @relation("InventoryTags")
+  accessList InventoryAccess[]
+  discussion DiscussionPost[]
+}
+
+model CustomField {
+  id          String    @id @default(uuid())
+  inventoryId String
+  type        FieldType
+  showInTable Boolean   @default(false)
+  order       Int
+
+  inventory  Inventory   @relation(fields: [inventoryId], references: [id])
+  itemFields ItemField[]
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  inventoryId String
+  title       String   @default("Untitled")
+  price       Float    @default(0.0)
+  quantity    Int      @default(0)
+  description String?
+  category    String?
+  imageUrl    String?
+  customId    String?
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  version     Int      @default(1)
+
+  inventory  Inventory        @relation(fields: [inventoryId], references: [id])
+  createdBy  User             @relation("UserItemsCreated", fields: [createdById], references: [id])
+  likes      Like[]
+  fields     ItemField[]
+  discussion DiscussionPost[]
+  tags       Tag[]            @relation("ItemTags")
+
+  @@unique([inventoryId, customId])
+}
+
+model ItemField {
+  id            String @id @default(uuid())
+  itemId        String
+  customFieldId String
+  value         String
+
+  item        Item        @relation(fields: [itemId], references: [id])
+  customField CustomField @relation(fields: [customFieldId], references: [id])
+}
+
+model Like {
+  id     String @id @default(uuid())
+  itemId String
+  userId String
+
+  item Item @relation(fields: [itemId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([itemId, userId])
+}
+
+model DiscussionPost {
+  id          String   @id @default(uuid())
+  inventoryId String?
+  itemId      String?
+  userId      String
+  content     String
+  createdAt   DateTime @default(now())
+
+  item      Item?      @relation(fields: [itemId], references: [id])
+  inventory Inventory? @relation(fields: [inventoryId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
+}
+
+model Tag {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  inventories Inventory[] @relation("InventoryTags")
+  items       Item[]      @relation("ItemTags")
+}
+
+model InventoryAccess {
+  id          String @id @default(uuid())
+  inventoryId String
+  userId      String
+
+  inventory Inventory @relation(fields: [inventoryId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([inventoryId, userId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum FieldType {
+  SINGLE_LINE
+  MULTI_LINE
+  NUMBER
+  DOCUMENT
+  BOOLEAN
 }
