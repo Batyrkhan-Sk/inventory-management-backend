@@ -22,7 +22,7 @@ router.get('/google/callback',
       { expiresIn: '7d' }
     );
 
-    res.redirect(`http://localhost:5173/login?token=${token}`);
+    res.redirect(`https://inventory-management-backend-s5o3.onrender.com/login?token=${token}`);
   }
 );
 
