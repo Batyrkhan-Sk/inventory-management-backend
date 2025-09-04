@@ -22,7 +22,7 @@ router.get('/google/callback',
       { expiresIn: '7d' }
     );
 
-    res.redirect(`https://inventory-management-backend-s5o3.onrender.com/login?token=${token}`);
+    res.redirect(`https://itemvault.netlify.app/login?token=${token}`);
   }
 );
 
