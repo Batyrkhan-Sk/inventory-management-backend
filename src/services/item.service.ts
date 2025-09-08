@@ -8,18 +8,20 @@ export const getItemsByInventoryId = async (inventoryId: string) => {
 
 export const createItem = async (itemData: any) => {
   return prisma.item.create({
-    data: {
-      inventoryId: itemData.inventoryId,
-      description: itemData.description,
-      title: itemData.title,
-      price: itemData.price,
-      quantity: itemData.quantity,
-      category: itemData.category,
-      imageUrl: itemData.imageUrl,
-      createdById: itemData.createdById,
-      customId: itemData.customId || crypto.randomUUID().slice(0, 8)
-    }
-  });
+  data: {
+    inventoryId: itemData.inventoryId,
+    description: itemData.description,
+    title: itemData.title,
+    price: itemData.price,
+    quantity: itemData.quantity,
+    category: itemData.category,
+    imageUrl: typeof itemData.imageUrl === "string" && itemData.imageUrl.trim() !== ""
+      ? itemData.imageUrl
+      : null,
+    createdById: itemData.createdById,
+    customId: itemData.customId || crypto.randomUUID().slice(0, 8)
+  }
+});
 };
 
 export const findByCustomId = async (inventoryId: string, customId: string) => {
